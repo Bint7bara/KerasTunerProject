@@ -6,6 +6,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 #import matplotlib.pyplot as plt
 import numpy as np
+from math import fabs
 
 seed = 7
 # load pima indians dataset
@@ -19,13 +20,20 @@ def build_model(hp):
 
     model = keras.Sequential()
     model.add(layers.Input(shape=input_shape)) # shape=(32, 32, 3)))
+    print("Adding Input Layer with input_shape:",input_shape)
+
     model.add(layers.Flatten())
-    for i in range(hp.Int('num_layers', 1, 4)):  # max range is INCLUSIVE
+    print("Flattening Input Layer")
+
+    nLayers = hp.Int('num_layers', 1, 4)  # max range is INCLUSIVE
+    print("max range for num_layers is INCLUSIVE:", nLayers)
+    for i in range(nLayers):             # loop from 0 to nLayers-1 Inclusive to add hidden layers
         model.add(layers.Dense(units=hp.Int('units_' + str(i),
-                                            min_value=20,
-                                            max_value=200,
+                                            min_value=40-20*fabs(i-nLayers/2),
+                                            max_value=200-100*fabs(i-nLayers/2),
                                             step=10),
                                activation='relu'))
+        print("Adding layer ",i," in range from ", 40-20*fabs(i-nLayers/2), " to ", 200-100*fabs(i-nLayers/2))
     model.add(layers.Dense(1, activation='sigmoid'))
     model.compile(
         optimizer=keras.optimizers.Adam(
@@ -40,7 +48,7 @@ tuner = RandomSearch(
     max_trials=20,
     executions_per_trial=3,
     directory='project',
-    project_name='Gencode4')
+    project_name='Gencode5')
 
 tuner.search_space_summary()
 
