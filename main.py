@@ -15,8 +15,12 @@ X = dataset[:,0:5]
 y = dataset[:,5]
 
 def build_model(hp):
+    input_shape = (X.shape[1],)
+
     model = keras.Sequential()
-    for i in range(hp.Int('num_layers', 2, 4)):
+    model.add(layers.Input(shape=input_shape)) # shape=(32, 32, 3)))
+    model.add(layers.Flatten())
+    for i in range(hp.Int('num_layers', 1, 4)):  # max range is INCLUSIVE
         model.add(layers.Dense(units=hp.Int('units_' + str(i),
                                             min_value=20,
                                             max_value=200,
@@ -36,7 +40,7 @@ tuner = RandomSearch(
     max_trials=20,
     executions_per_trial=3,
     directory='project',
-    project_name='Gencode2')
+    project_name='Gencode4')
 
 tuner.search_space_summary()
 
