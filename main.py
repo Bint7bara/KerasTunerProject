@@ -25,15 +25,21 @@ def build_model(hp):
     model.add(layers.Flatten())
     print("Flattening Input Layer")
 
-    nLayers = hp.Int('num_layers', 1, 4)  # max range is INCLUSIVE
+    nLayers = hp.Int('num_layers', 1, 5)  # max range is INCLUSIVE
     print("max range for num_layers is INCLUSIVE:", nLayers)
     for i in range(nLayers):             # loop from 0 to nLayers-1 Inclusive to add hidden layers
-        model.add(layers.Dense(units=hp.Int('units_' + str(i),
-                                            min_value=40-20*fabs(i-nLayers/2),
-                                            max_value=200-100*fabs(i-nLayers/2),
-                                            step=10),
+        hp_min_value=10 + nLayers*10 - 20*fabs(i-nLayers/2) # constant + scale - bulge
+        hp_max_value=20 + int(100/nLayers) + nLayers*50 - 100*fabs(i-nLayers/2) # constant + underdog + scale - bulge
+        hpunits=hp.Int('units_' + str(i),
+                                            min_value=hp_min_value,
+								#10+nLayers*10-20*fabs(i-nLayers/2),
+                                            max_value=hp_max_value,
+								#20+nLayers*50-100*fabs(i-nLayers/2),
+                                            step=10)
+        model.add(layers.Dense(units=hpunits,
                                activation='relu'))
-        print("Adding layer ",i," in range from ", 40-20*fabs(i-nLayers/2), " to ", 200-100*fabs(i-nLayers/2))
+        #print("Adding layer ",i," in range: ", 40-20*fabs(i-nLayers/2), " to ", 200-100*fabs(i-nLayers/2))
+        print("Adding layer ",i," in range: ", hp_min_value, " < ", hpunits, " < ", hp_max_value)
     model.add(layers.Dense(1, activation='sigmoid'))
     model.compile(
         optimizer=keras.optimizers.Adam(
@@ -48,7 +54,7 @@ tuner = RandomSearch(
     max_trials=20,
     executions_per_trial=3,
     directory='project',
-    project_name='Gencode5')
+    project_name='Gencode7')
 
 tuner.search_space_summary()
 
